@@ -1,0 +1,306 @@
+* DONE Module 1 
+** DONE Question 1
+   - Explain feature-based stereotyping! Can you think of an example of the same process at work here in Norway?
+     (Hjemme på Hen)
+
+   - bias, forklar biaser		bias/bie
+   - kroppslige trekk/ansiktstrekk	trekk/star trekMODUL 1
+   - Studie av dommer i USA
+   - mer afrikanske trekk = kraftigere dom 	sterkt afroamerikansk, sterk dom
+   - Dess mer stereotypiske svarte trekk, dess sannere er stereotypen. Finnes ikke I mellom gruppene, men 
+     kun innenfor gruppene (svarte med sterkere trekk, bedømmet mer stereotypisk enn andre svarte. 
+     Samme med hvite med svarte trekk)likner stereotype = bedømmet som mer riktig/sterk afroamerikansk
+   - biasen skjer unconcious no control/no konto bie
+   - Årsak til hvorfor:
+   - skjemaer		skjemaer//skjermer
+   - Diskusjon hva som hadde skjedd med samme I Norge
+   - USA lang erfaring med afroamerikanere, og afrikanske
+   - ikke lenger forskjell på dom for svarte og hvite, diskutere også hvorvidt feature-based stereotyping kan bli borte ved å sette fokus på dette hos dommerne.		Focus/fokusering
+   - interresant å tenke på om det er noen bias FØR man kommer inn I rettssystemet	bias  FØR/bie
+
+** DONE Question 2
+   - What can we assess with the who-said-what paradigm and how can this be achieved?
+     Why is categorization by sex automatic, but categorization by race not, according to evolutionary
+     psychology?
+     (Kringsjå)
+     
+** DONE Question 3
+   - What is the shooter bias and how is it measured?
+   If we were to assess the shooter bias against Non-Caucasians wearing Muslim headgear what result
+   would you expect? Explain!
+   (Maria)
+
+** TODO Question 4
+   * What is anticipatory reciprocity? How does it emerge?
+     
+** DONE Question 5
+   - How convincing is the evidence for Botox reducing emotion recognition accuracy? (to answer this
+   question, you should also do a search for other studies on the same issue!
+   (Forskningsparken)
+
+** DONE Question 6
+   - Why do people react with elevated cortisol to not being mimicked?
+   What is socially dependent cortisol reactivity?
+   What implications might the present findings have for health models and health interventions?
+   (Bestemor/bestefar på Storløkka)
+
+** DONE Question 7
+   - When do people tend to mimic each other behaviorally? Explain what sorts of behavior can be mimicked!
+   Should we train people to mimic?
+
+*** Stikkord
+
+    1. Behavioural mimicry: when two or more people engage in the same behaviour at the same time
+       - Verified by that people do the same, or similar act at a certain time, typically no longer than 3 to 5 seconds after
+    2. Mannerisms, gestures, postures, and other motor movements can all be mimicked
+    3. When do people tend to mimic each other?
+       1) Pre-existing rapport
+	  - Mimic a friend more than a stranger
+	  - mimic likeable confederates more than less likeable
+	    - done research where person was presented as either open and honest, or closed and dishonest
+	  - Mimic ingroup more than outgroup
+	    - even with such an arbitrary cue as sharing similar first names
+       2) With a goal to affiliate with someone
+	  - people were primed with a goal to affiliate (either consciously or unconciously)
+	  - consciously: was told it was beneficial for the experiment if they got along with the confederate
+	  - unconsciously: primed with words like affiliate, friend and together before interacting with the confederate
+	  - no difference between conscious and unconscious
+       3) Inidividual differences in prosocial orientation
+	  - People that are more prosocial, and more interdependent on society, show higher mimicry
+	    - This both when being primed, and when comparing cultures (Japan vs USA), regardless of race
+       4) Similiarity
+	  - Mimics with similar opinions to their own (can be explain by in and outgroup as well)
+	  - Another forms of similarity: shared knowledge, stereotypes can be conceptualised as one form of shared knowledge
+       5) Mood and emotion
+	  - Tend to mimic others more when we are happy (done by priming people to be happe or sad)
+	  - Interestingly there's one sad emotion that induces more mimicry. Guilt.
+	    - participant bumped into by a confederate, conferederate either takes responsibility, or blames the participant
+	    - Afterwards mimic a video more when they were blamed, and could not make amends with the confederate(he/she left immediately)
+    4. When do people NOT mimic each other (inhibitors)
+       - goal to disaffiliate
+    5. Consequences of mimicry
+       1) cognitive processing
+	  - people that are being mimicked tend to become more field dependent
+	  - Mimicked people also tend to be more conformative to their own stereotypes (women and african-american men did worse on maths test after being mimicked)
+	  - Mimicking increases persuasion and consumer behaviour
+	  - LINKE DET TIL EMBODIMENT (feeling of cold when being mimicked more or less than expected (something is "off", and social coldness)
+	  - 
+** DONE Question 8
+   - How does havinga negative attitude towards someone influence facial responses to facial emotional
+   expressions of that person? (Bestemor/bestefar på andre sia)
+   
+* DONE Module 2
+  
+* TODO Module 3
+** TODO Question 1
+   - What does it mean to say that a social concept is embodied? 
+   Compare the idea of modal mental representations to the idea of amodal mental representations in associative networks. 
+   Illustrate this with an example.
+*** Stikkord
+    - embodied cognition/grounded cognition
+      - Everything is grounded in the sensory
+    - modal vs amodal representations
+    - amodal representations
+      - Traditional: amodal system in a module based system
+      - computer
+      - body and mind divided
+      - Explain embodiment features as embodiments effects where these effect are simply linked to the
+      - Associative networks
+	- Everything bound together by abstract symbols torn away from the external world
+	- Explains a lot of stuff concerning retrieval of memory etc. very well
+	- Some things associative cannot explain, however
+	  - Say whether a sentence makes sense or not by pulling a lever towards yourself, or pushing it from yourself
+	  - People made to move in a portly way, reports other people as having more traits of an overweight person
+    - Embodied cognition
+      - one system
+      - grounded in our sensory and motoric behaviour
+      - Barsaoulu
+	- when we think of something we reactivate the places used to experience in the first place
+	- Torskerogn
+    
+** DONE Question 2
+   - How could modal representations develop? Describe at least 2 different accounts, and name examples of embodied concepts for each
+*** DONE Stikkord
+    1) Grounded cognition
+       - mental representations are all grounded in bodily morphology
+       - All aspects of psychological processes are influenced by some degree by our real life world
+    2) Explain modal representations
+       - We can say that the embodiment framework assumes how we analyze and react to a situation must take into account our bodily abilities.
+       - They remain in your head as physical, and no matter what, you can relate this to the real world vs associative network 
+    3) Direct experience: development of schemas where we connect something new to 
+       already existing modal representations. Butterfly: an insect, small, flys, etc.
+       - Eple erfaring
+       - Judgement (example of how direct experiences are used to connect it to something
+	 completely abstract, and develop a modal representation of it)
+    4) metaphoric mapping: developed by having no direct experience or anything to link an abstract concept
+       up against. Therefore we use linguistic metaphors to explain something completely abstract
+       - Use example of time mapped into our spatial dimensions
+       - Also use smell example, Lee and Schwarz found that smell influences suspicion
+    5) inherited association: got no fucking clue (yet), considering to just leave it out, and explain metaphoric and direct
+**** DONE Assosiasjoner
+     1. grinding someone + collision
+       	- mental presentation + grinding
+     2. model + presentation
+       	- anal + body builder
+       	- rain + physics
+     3. Directory 
+       	- apple + xpeke
+       	- judge judy
+     4. Metal
+       	- timeshower + spatula
+       	- fishy + bruce lee + scwarznegger
+	  
+** DONE Question 3
+   - What predictions does the embodiment account make - how can it be tested whether a concept is embodied? 
+   Name at least 2 methods, and describe one in more detail with an example study.
+*** DONE Stikkord
+    1. explain mental representations
+       * cognitive symbols that represent the external reality
+    2. Associative network vs embodiment account
+       * Root/branch
+       * interference experiment
+       * Stroop effect
+    3. predictions:
+       * power and size
+       * every concept that has a physical part explaining something abstract,
+	 could be influenced by adding that physical part to said concept.
+    4. clipboard
+    5. book weighing heavily
+       * need to know something to rely on embodied concepts
+**** DONE Assosiasjoner
+     1. mental presentation
+       	* cone symbol + blinking X
+     2. Ass vs. embrace
+       	* groot from guardians of the galaxy
+	* interference on a screen
+       	* a barstool
+     3. predator
+       	* poop + sizzling
+       	* abdominals -> physics
+     4. clipboard
+     5. someone trying to lift a heavy book
+       	       	
+* TODO Module 4
+** DONE Question 1
+   - Give some examples of framing effects
+*** Stikkord
+    1. Framing effects are mentioned when talking about judgemet and decisions
+    2. Different ways of phrasing something (you WIN 50% vs. you LOSE 50%)
+    3. Manifest in many differet ways
+    4. Common that they violate some of the key principles in normative, economical theories
+       - indifference
+       - priciple of consistency
+       - principle of coherence
+    5. Twersky and Kahneman
+       - one framing effect
+       - example of attribute framing
+    6. Disease, 600 people will die (if nothig done)
+       1. A = 200 people saved
+       2. B = 1/3 600 saved, 2/3 0 saved
+       3. C = 400 people die
+       4. D = 1/3 nobody dies, 2/3 everyone dies
+       5. Should have nothing to say (Indifference)
+       6. A over B, D over C
+       7. Reason: risk aversion
+	  - Avoid risk when gain is at stake
+    7. Attribute framing
+       1. 95% fatfree vs 5% fat
+       2. A over B
+       3. Bias towards desirable traits
+       4. Weber's law of psychophysics
+	  + The same difference is perceived as greater if the numbers are low
+**** Assosiasjoner
+     1. a big ass frame
+     2. human split in half, one happy, one sad
+     3. many maniacs
+     4. Normal girl, Ecco shoes
+	- Fez (INDIE)
+	- concert
+	- plus and minus together (makes sense)
+     5. Twerking and djengis khan
+     6. dismantle
+	- ABCD
+	- fez (INDIE)
+	- A above B, D above C
+	- reading: Rice Avengers
+     7. attorney
+	- very skinny vs very fat
+	- desintigrate
+	- spiderweb psychopath 
+	  
+** TODO Question 2
+
+   - Discuss differences between System 1- and System 2-thinking
+*** Stikkord
+** TODO Question 3
+*** Stikkord
+    - Explain what hindsight bias is
+    - is skewness in our judgements that makes us not being able to be neutral when making judgements and decisions
+    - Hindisght bias is divided into three levels
+      - Memory distortion(lowest level)
+	- When trying to recall what your own predictions were, you simply remember wrong
+      - Inevitability (second level)
+	- The belief that something simply had to happen
+	- subsumes memory distortion and builds on top of that
+	- Instead of just distorted memory, it also takes into account a belief in causal forces that make it seem that it had to happen
+      - Foreseeability (last level)
+	- the belief that you knew it all along
+	- subsumes inevitability but also adds on top the assumed ability and prowess of predicting outcomes
+    - Have three different levels of cognitive input that in different ways effect the three levels of hindsight bias
+      - Cognitive inputs
+	- Recollection
+	  - might not remember what one earlier said, therefore rely more on the newly acquired information
+	  - Might also confuse the sources from where the information came 
+	- Knowledge updating
+	  - Knowledge updating refers to the integration of new information into existing memory structures
+	  - Might leading to hindsight bias by the fact that when getting that last bit of information everything finally fits together
+	    and everything simply makes more sense
+	  - When integrating new information it will then reactivate the points that actually fit in with this new information
+	    making the cues that could predict the outcome more prominent in memory
+	- Sensemaking
+	  - READ MORE ON SENSEMAKING
+** DONE Question 4
+   - Discuss the concept “psychological distance” and give some examples of how it can affect judgments and decisions
+
+*** DONE Stikkord
+    1. Perceived distance
+       - Concrete vs abstract
+       - Temporal
+       - Spatial
+       - Social
+       - Hypothetical
+    2. High level construal
+       - Abstract, bigger picture
+    3. Low level construal
+       - Concrete, finer details
+    4. Kids playing catch
+    5. Temporal
+    6. spatial
+    7. Social
+    8. Hypothetical
+    9. Effect on judgement and decisions
+       - Planning fallacy
+       - Time discount
+       - Lack of caring for out of own country
+       - Stereotyping
+       - Risky behaviour
+**** DONE Assosiasjoner
+     1. high level + abdominals
+     2. Low level + concrete
+     3. playing catch
+     4. tempo il gante
+     5. spatula
+     6. Lots of people talking in group
+     7. Hypothermic
+     8. P = VI
+       	- falling
+       	- discovery
+       	- turning the other cheek
+       	- stereo blasting music
+       	- rice cooking
+	  
+
+
+* Reiserute
+** 
+   

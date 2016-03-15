@@ -1,0 +1,978 @@
+'This is a script version of the INDIRECT macro described in
+'Preacher, K. J., & Hayes, A. F. (2008). Asympotic and resampling
+'procedures for assessing and comparing indirect effects in
+'multiple mediator models. Behavior Research Methods, 40, 879-891
+'Written by Andrew F. Hayes
+'School of Communication
+'The Ohio State University'
+'hayes.338@osu.edu
+'Version 2.0 BETA, March 31, 2009
+'You must run as a script file, not as a syntax file
+'If select to save the bootstrap estimates, they will
+'be saved as a data file called indirect.sav in the
+'SPSS directory
+'Version 2.0 BETA allows for a dichtomous outcome variable (Y)
+'See PDF documentation for details
+
+
+Public strNotPicked() As String
+Public strXPicked() As String
+Public strMPicked() As String
+Public strYPicked() As String
+Public strCPicked() As String
+Public bootname() As String
+Public strVariables() As String
+Public intSelected() As Integer
+Public intArrayInd() As Integer
+Public intArrayP(5) As Integer
+Public intNotPicked() As Integer
+Public intXPicked() As Integer
+Public intMPicked() As Integer
+Public intYPicked() As Integer
+Public intCPicked() As Integer
+Public boot As Integer
+Public Picked As Integer
+Public sve As Integer
+Public varord As Integer
+Public c As Integer
+Public cc As String
+Public mm As String
+Public contrast As Integer
+Public conf As Integer
+Public confm As Integer
+Public strListArray1(5) As String
+Public strListArray2(2) As String
+Public mstxt As String
+Dim objSpssOut As ISpssOutputDoc
+
+ Sub Main
+   Call Box
+   Set objSpssOut = objSpssApp.GetDesignatedOutputDoc
+   objSpssOut.Visible = True
+   Call Program
+   End
+ End Sub
+ 
+ 'This section of the program creates the dialog box for the analysis
+ 
+ Sub Box
+    ReDim strNotPicked(0) As String
+    strListArray1(0) = "0"
+    strListArray1(1) = "1000"
+    strListArray1(2) = "2000"
+    strListArray1(3) = "5000"
+    strListArray1(4) = "10000"
+    strListArray1(5) = "20000"
+    strListArray2(0) = "90"
+    strListArray2(1) = "95"
+    strListArray2(2) = "99"
+    Begin Dialog UserDialog 510,385,"Preacher and Hayes (2008) Multiple Mediation Script", .DialogMon
+    ListBox 30,10,150,300,strNotPicked(), .NotPicked
+    ListBox 240,135,155,25,strXPicked(), .XPicked
+	ListBox 240,60,155,60,strMPicked(), .MPicked
+	ListBox 240,20,155,25,strYPicked(), .YPicked
+    ListBox 240,175,155,40,strCPicked(), .CPicked
+    PushButton 430,10,70,21,"OK", .cmdOK
+    PushButton 430,35,70,21,"Cancel", .cmdCancel
+    PushButton 430,60,70,21,"About", .cmdAbout
+    PushButton 200,135,30,20,">", .XcmdMoveIt
+    PushButton 200,60,30,20,">", .McmdMoveIt
+    PushButton 200,20,30,20,">", .YcmdMoveIt
+	PushButton 200,175,30,20,">", .CcmdMoveIt
+    DropListBox 240,240,100,100,strListArray1(),.ListBox1
+    Text 240,120,170,14, "Independent Variable (X)"
+    Text 240,45,170,14, "Proposed Mediator(s) (M)"
+    Text 240,5,150,14, "Dependent Variable (Y)"
+    Text 240,160,150,14, "Covariate(s)"
+	Text 240,225,150,15, "Bootstrap Samples"
+	Text 240,265,250,15, "Bootstrap Indirect Effect Confidence"
+    DropListBox 240,282,100,100,strListArray2(),.ListBox2
+	CheckBox 30,309, 200, 15, "Save Bootstrap Estimates", .Check
+    CheckBox 30,330, 200, 15, "Contrast Indirect Effects", .Check2
+    Text 240,310,180,15,"Bootstrap Method"
+    OptionGroup .Options
+    OptionButton 240,330,180,15,"Percentile"
+    OptionButton 240,345,180,15,"Bias Corrected"
+    OptionButton 240,360,230,15,"Bias Corrected and Accelerated"
+    End Dialog
+  Dim dlg As UserDialog
+  dlg.listbox2 = 1
+  dlg.ListBox1 = 1
+  dlg.Options = 2
+  Dialog dlg
+  End Sub
+  
+   
+ 'This section retrieves the variable names in the open SPSS file and stores them
+ 'in an array called strVariables().  The number of variables is held in intNvar
+ 
+ Sub RetrieveVarNames
+   Dim objSPSSInfo As ISpssInfo
+   Set objSPSSInfo = objSpssApp.SpssInfo
+   Dim intNvar As Integer
+   intNvar = objSPSSInfo.NumVariables
+   If intNvar = 0 Then notopen
+   ReDim strVariables(intNvar-1) As String
+   ReDim intSelected(intNvar-1) As Integer
+   ReDim intArrayInd(intNvar-1) As Integer
+   Dim i As Integer
+   Dim j As Integer
+   For i = 0 To intNvar-1
+     strVariables(i)=objSPSSInfo.VariableAt(i)
+   Next i
+   For j = 0 To intNvar-1
+     intSelected(j)=0
+   Next j
+   intArrayP(1)=intNvar
+   intArrayP(2)=0
+   intArrayP(3)=0
+   intArrayP(4)=0
+   intArrayP(5)=0
+   End Sub 
+ 
+ 'This section prints the variables in the appropriate list boxes depending on whether
+ 'they are picked or not picked
+ 
+  Sub PrintVariables()
+     a=0
+     b=0
+     c=0
+     ReDim strNotPicked(intArrayP(1)) As String
+     ReDim intNotPicked(intArrayP(1)) As Integer
+     ReDim strXPicked(intArrayP(2)) As String
+     ReDim intXPicked(intArrayP(2)) As Integer
+     ReDim strMPicked(intArrayP(3)) As String
+     ReDim intMPicked(intArrayP(3)) As Integer
+     ReDim strYPicked(intArrayP(4)) As String
+     ReDim intYPicked(intArrayP(4)) As Integer
+     ReDim strCPicked(intArrayP(5)) As String
+     ReDim intCPicked(intArrayP(5)) As Integer
+     For j = 0 To UBound(intArrayInd)
+     If intSelected(j) = 0 Then
+       strNotPicked(b)=strVariables(j)
+       intNotPicked(b)=j
+       b=b+1
+     End If
+     If intSelected(j) = 2 Then
+       strXPicked(0)=strVariables(j)
+       intXPicked(0)=j
+     End If
+     If intSelected(j) = 3 Then
+       strMPicked(a)=strVariables(j)
+       intMPicked(a)=j
+       a = a + 1
+     End If
+     If intSelected(j) = 4 Then
+       strYPicked(0)=strVariables(j)
+       intYPicked(0)=j
+     End If
+     If intSelected(j) = 5 Then
+       strCPicked(c)=strVariables(j)
+       intCPicked(c)=j
+       c = c + 1
+     End If
+     Next j
+     DlgEnable "NotPicked", True  'The variables not selected
+     DlgEnable "XPicked", True     'The variables selected
+     DlgEnable "MPicked", True     'The variables selected
+     DlgEnable "YPicked", True     'The variables selected
+     DlgEnable "CPicked", True     'The variables selected
+     DlgListBoxArray "NotPicked", strNotPicked()
+     DlgListBoxArray "XPicked", strXPicked()
+     DlgListBoxArray "MPicked", strMPicked()
+     DlgListBoxArray "YPicked", strYPicked()
+     DlgListBoxArray "CPicked", strCPicked()
+ End Sub
+ 
+ 
+ 'This section monitors the dialog boxes and takes action as appropriate
+ 
+ Function DialogMon (strDialogItem As String, intAction As Integer, intSuppValue As Integer) As Boolean
+ Select Case intAction
+   Case 1 'Initialization
+      DlgEnable "cmdCancel", True
+      DlgEnable "cmdOK", False
+      DlgEnable "XcmdMoveIt", False
+      DlgEnable "McmdMoveIt", False
+      DlgEnable "YcmdMoveIt", False
+      DlgEnable "CcmdMoveIt", False
+      DlgEnable "Check", False
+      DlgEnable "Check2", False
+      DlgEnable "ListBox2", False
+      DlgEnable "Options", False
+      DlgEnable "Check", True
+      DlgEnable "ListBox2", True
+      DlgEnable "Options", True
+      Call RetrieveVarNames
+      Call PrintVariables
+   Case 2 'Some action taken
+      Select Case strDialogItem
+      Case "XPicked" 'Click on variables to be picked
+         DlgEnable "XcmdMoveIt", True
+         DlgText "XcmdMoveIt", "<"
+         DlgEnable "McmdMoveit", False
+         DlgEnable "YcmdMoveit", False
+         DlgEnable "CcmdMoveit", False
+         DlgEnable "MPicked", False
+         DlgEnable "YPicked", False
+         DlgEnable "CPicked", False
+         DialogMon = True
+      Case "MPicked" 'Click on variables to be picked
+         DlgEnable "McmdMoveIt", True
+         DlgText "McmdMoveIt", "<"
+         DlgEnable "XcmdMoveit", False
+         DlgEnable "YcmdMoveit", False
+         DlgEnable "CcmdMoveit", False
+         DlgEnable "XPicked", False
+         DlgEnable "YPicked", False
+         DlgEnable "CPicked", False
+         DialogMon = True
+      Case "YPicked" 'Click on variables to be picked
+         DlgEnable "YcmdMoveIt", True
+         DlgText "YcmdMoveIt", "<"
+         DlgEnable "XcmdMoveit", False
+         DlgEnable "McmdMoveit", False
+         DlgEnable "CcmdMoveit", False
+         DlgEnable "XPicked", False
+         DlgEnable "MPicked", False
+         DlgEnable "CPicked", False
+         DialogMon = True
+       Case "CPicked" 'Click on variables to be picked
+         DlgEnable "CcmdMoveIt", True
+         DlgText "CcmdMoveIt", "<"
+         DlgEnable "XcmdMoveit", False
+         DlgEnable "McmdMoveit", False
+         DlgEnable "YcmdMoveit", False
+         DlgEnable "XPicked", False
+         DlgEnable "MPicked", False
+         DlgEnable "YPicked", False
+         DialogMon = True
+      Case "NotPicked" 'Click on variables picked
+         If intArrayP(2) < 1 Then
+         DlgEnable "XcmdMoveIt", True
+         DlgText "XcmdMoveIt", ">"
+         DialogMon = True
+         End If
+         If intArrayP(3) < 11 Then
+         DlgEnable "McmdMoveIt", True
+         DlgText "McmdMoveIt", ">"
+         DialogMon = True
+         End If
+         If intArrayP(4) < 1 Then
+         DlgEnable "YcmdMoveIt", True
+         DlgText "YcmdMoveIt", ">"
+         DialogMon = True
+         End If
+         If intArrayP(5) < 100 Then
+         DlgEnable "CcmdMoveIt", True
+         DlgText "CcmdMoveIt", ">"
+         DialogMon = True
+         End If
+      Case "cmdCancel" 'Click Cancel Button
+         DialogMon = False
+         End
+      Case "cmdOK" 'Click OK
+         boot=DlgText("ListBox1")
+         conf=DlgText("ListBox2")
+         sve =DlgValue("Check")
+         confm = DlgValue("Options")
+         contrast = DlgValue("Check2")
+         c=intArrayP(5)
+         cc = " "
+         i = 1
+         For i = 0 To intArrayP(5)-1
+         cc = cc + strCPicked(i) + " "
+         Next i
+         mm = " "
+         i = 1
+         For i = 0 To intArrayP(3)-1
+         mm = mm + strMPicked(i) + " "
+         Next i
+         DlgEnable "cmdOK", False
+         DialogMon = False
+      Case "cmdAbout" 'Click About
+         About
+         DialogMon = True
+      Case "XcmdMoveIt" 'Click Move Button
+         If DlgText ("XcmdMoveIt") = ">" Then
+           Picked = 2
+           SelectIt
+         Else
+           Picked = 2
+           IntSelIndex = DlgValue ("XPicked")
+           intSelected(intXPicked(IntSelIndex)) = 0
+           DeselectIt
+         End If
+       DialogMon = True
+       Case "McmdMoveIt" 'Click Move Button
+         If DlgText ("McmdMoveIt") = ">" Then
+           Picked = 3
+           SelectIt
+         Else
+           Picked = 3
+           IntSelIndex = DlgValue ("MPicked")
+           intSelected(intMPicked(IntSelIndex)) = 0
+           DeselectIt
+         End If
+       DialogMon = True
+       Case "YcmdMoveIt" 'Click Move Button
+         If DlgText ("YcmdMoveIt") = ">" Then
+           Picked = 4
+           SelectIt
+         Else
+           Picked = 4
+           IntSelIndex = DlgValue ("YPicked")
+           intSelected(intYPicked(IntSelIndex)) = 0
+           DeselectIt
+         End If
+         DialogMon = True
+         Case "CcmdMoveIt" 'Click Move Button
+         If DlgText ("CcmdMoveIt") = ">" Then
+           Picked = 5
+           SelectIt
+         Else
+           Picked = 5
+           IntSelIndex = DlgValue ("CPicked")
+           intSelected(intCPicked(IntSelIndex)) = 0
+           DeselectIt
+         End If
+         DialogMon = True
+       Case "ListBox1" 'Click List Box
+         If DlgText ("ListBox1") = "0" Then
+         DlgEnable "Check", False
+         DlgEnable "ListBox2", False
+         DlgEnable "Options", False
+         Else
+         DlgEnable "Check", True
+         DlgEnable "ListBox2", True
+         DlgEnable "Options", True
+         End If
+         DialogMon = True
+      End Select
+ End Select
+ End Function
+ 
+ ' Here is the routine for selecting variables to be used
+ 
+Sub SelectIt
+   Dim IntSelIndex As Integer
+   IntSelIndex = DlgValue ("NotPicked")
+   intArrayP(Picked)=intArrayP(Picked)+1
+   intArrayP(1)=intArrayP(1)-1
+   intSelected(intNotPicked(IntSelIndex)) = Picked
+   DlgEnable "XcmdMoveIt", False
+   DlgEnable "YcmdMoveIt", False
+   DlgEnable "CcmdMoveIt", False
+   DlgEnable "McmdMoveIt", False
+   If intArrayP(2) = 1 And intArrayP(3) > 0 And intArrayP(4) = 1 Then
+         DlgEnable "cmdOK", True
+   End If
+   If intArrayP(3) > 1 Then DlgEnable "Check2", True
+   PrintVariables
+End Sub
+  
+  ' Here is the routine for deselecting variables
+  
+Sub DeselectIt
+
+   intArrayP(Picked)=intArrayP(Picked)-1
+   intArrayP(1)=intArrayP(1)+1
+   PrintVariables
+   DlgEnable "XcmdMoveIt", False
+   DlgEnable "McmdMoveIt", False
+   DlgEnable "YcmdMoveIt", False
+   DlgEnable "CcmdMoveIt", False
+   If intArrayP(2) < 1 Then DlgEnable "cmdOK", False
+   If intArrayP(3) < 1 Then DlgEnable "cmdOK", False
+   If intArrayP(4) < 1 Then DlgEnable "cmdOK", False
+   If intArrayP(3) < 2 Then DlgEnable "Check2", False
+ End Sub
+
+ 
+ 
+ 'This section displays a box telling user that no file is open
+ 
+Sub notopen
+    If MsgBox("Please Open a Data File First",vbOkOnly,"Error") = vbOK Then
+       End
+    End If
+End Sub
+
+Sub About
+	mstxt = "Written by Andrew F. Hayes, School of Communication, The Ohio State University." & vbCrLf
+    mstxt = mstxt + "This is a script version of the macro described in Preacher, K. J., and Hayes, A. F." & vbCrLf
+    mstxt = mstxt + "(2008). Asymptotic and resampling methods for assessing and comparing indirect" & vbCrLf
+    mstxt = mstxt + "effects in multiple mediator models. Behavior Research Methods, 40, 879-891." & vbCrLf
+    mstxt = mstxt & vbCrLf
+    mstxt = mstxt + "This is version 4.1 uploaded on Jan 21, 2011.  Join the Statistical Mediation" & vbCrLf
+    mstxt = mstxt + "Analysis Facebook group at http://www.facebook.com/group.php?gid=44574520333"
+	MsgBox(mstxt, vbOkOnly, "About this script")
+End Sub
+
+
+
+'Here is the program which conducts the analysis
+
+Sub Program
+Dim strCommand As String
+strCommand = "Preserve." & vbCrLf
+strCommand = strCommand + "Set printback = Off." & vbCrLf
+strCommand = strCommand + "Set LENGTH = NONE." & vbCrLf
+strCommand = strCommand + "Set MXLOOPS = 10000001." & vbCrLf
+strCommand = strCommand + "Set SEED = Random." & vbCrLf
+strCommand = strCommand + "MATRIX." & vbCrLf
+strCommand = strCommand + "Get dd/variables = " & strYPicked(0) & " " & strXPicked(0) & " " & mm & " " & cc & "/names = nm/MISSING = OMIT." & vbCrLf
+strCommand = strCommand + "compute ovals = ncol(design(dd(:,1)))." & vbCrLf
+strCommand = strCommand + "compute contrast = " & contrast & "." & vbCrLf
+strCommand = strCommand + "compute btn = " & boot & "." & vbCrLf
+strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+   strCommand = strCommand + "compute omx = cmax(dd(:,1))." & vbCrLf
+   strCommand = strCommand + "compute omn = cmin(dd(:,1))." & vbCrLf
+   strCommand = strCommand + "compute dd(:,1) = (dd(:,1) = omx)." & vbCrLf
+   strCommand = strCommand + "compute rcd = {omn, 0; omx, 1}." & vbCrLf
+   strCommand = strCommand + "Do if (btn = 0)." & vbCrLf
+   strCommand = strCommand + "compute contrast = 0." & vbCrLf
+   strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "compute n = nrow(dd)." & vbCrLf
+strCommand = strCommand + "compute confm = " & confm & "." & vbCrLf
+strCommand = strCommand + "compute bca = 0." & vbCrLf
+strCommand = strCommand + "compute percent = 0." & vbCrLf
+strCommand = strCommand + "compute bc = 0." & vbCrLf
+strCommand = strCommand + "Do If (btn = 0)." & vbCrLf
+strCommand = strCommand + "compute btn = 1." & vbCrLf
+strCommand = strCommand + "compute lpmax = 1." & vbCrLf
+strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "compute normal = 1." & vbCrLf
+strCommand = strCommand + "Do if (btn > 1)." & vbCrLf
+strCommand = strCommand + "compute lpmax = n+1+btn." & vbCrLf
+strCommand = strCommand + "Do if (confm = 0)." & vbCrLf
+strCommand = strCommand + "compute percent = 1." & vbCrLf
+strCommand = strCommand + "Else if (confm = 1)." & vbCrLf
+strCommand = strCommand + "compute bc = 1." & vbCrLf
+strCommand = strCommand + "Else if (confm = 2)." & vbCrLf
+strCommand = strCommand + "compute bca = 1." & vbCrLf
+strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "compute nm = t(nm)." & vbCrLf
+strCommand = strCommand + "compute outv = t(nm(1,1))." & vbCrLf
+strCommand = strCommand + "compute nv = ncol(dd)." & vbCrLf
+strCommand = strCommand + "compute nc =" & c & "." & vbCrLf
+strCommand = strCommand + "compute con = make(n,1,1)." & vbCrLf
+strCommand = strCommand + "compute dat2 = dd." & vbCrLf
+strCommand = strCommand + "compute dat = dd." & vbCrLf
+strCommand = strCommand + "compute bzx = make(nv-2-nc,1,0)." & vbCrLf
+strCommand = strCommand + "compute bzxse = make(nv-2-nc,1,0)." & vbCrLf
+strCommand = strCommand + "compute b=make((nv-1-nc),(nv-1-nc),0)." & vbCrLf
+strCommand = strCommand + "compute resid = make(n,(nv-nc),0)." & vbCrLf
+strCommand = strCommand + "compute info = make((2*(nv-nc-2)+1),(2*(nv-nc-2)+1),0)." & vbCrLf
+strCommand = strCommand + "compute imat = make(ncol(info),4,1)." & vbCrLf
+strCommand = strCommand + "compute imat(1:(nv-nc-2),1)=t({2:(nv-nc-1):1})." & vbCrLf
+strCommand = strCommand + "compute imat(1:(nv-nc-2),3)=t({2:(nv-nc-1):1})." & vbCrLf
+strCommand = strCommand + "compute imat((nv-nc-1):(ncol(info)-1),2)=t({2:(nv-nc-1):1})." & vbCrLf
+strCommand = strCommand + "compute imat((nv-nc-1):(ncol(info)-1),4)=t({2:(nv-nc-1):1})." & vbCrLf
+strCommand = strCommand + "compute imat((nv-nc-1):(ncol(info)-1),1)=make((nv-nc-2),1,(nv-nc))." & vbCrLf
+strCommand = strCommand + "compute imat((nv-nc-1):(ncol(info)-1),3)=make((nv-nc-2),1,(nv-nc))." & vbCrLf
+strCommand = strCommand + "compute imat(ncol(info),:)={(nv-nc),1,(nv-nc),1}." & vbCrLf
+strCommand = strCommand + "compute cname={'C1';'C2';'C3';'C4';'C5';'C6';'C7';'C8';'C9';'C10';'C11';'C12';'C13';'C14';'C15';'C16';'C17'}." & vbCrLf
+strCommand = strCommand + "compute cname={cname;'C18';'C19';'C20';'C21';'C22';'C23';'C24';'C25';'C26';'C27';'C28';'C29';'C30';'C31'}." & vbCrLf
+strCommand = strCommand + "compute cname={cname;'C32';'C33';'C34';'C35';'C36';'C37';'C38';'C39';'C40';'C41';'C42';'C43';'C44';'C45'}." & vbCrLf
+strCommand = strCommand + "compute p0=-.322232431088." & vbCrLf
+strCommand = strCommand + "compute p1 = -1." & vbCrLf
+strCommand = strCommand + "compute p2 = -.342242088547." & vbCrLf
+strCommand = strCommand + "compute p3 = -.0204231210245." & vbCrLf
+strCommand = strCommand + "compute p4 = -.0000453642210148." & vbCrLf
+strCommand = strCommand + "compute q0 = .0993484626060." & vbCrLf
+strCommand = strCommand + "compute q1 = .588581570495." & vbCrLf
+strCommand = strCommand + "compute q2 = .531103462366." & vbCrLf
+strCommand = strCommand + "compute q3 = .103537752850." & vbCrLf
+strCommand = strCommand + "compute q4 = .0038560700634." & vbCrLf
+strCommand = strCommand + "compute conf = " & conf & "." & vbCrLf
+strCommand = strCommand + "compute lowalp = 0.5*(1-(conf/100))." & vbCrLf
+strCommand = strCommand + "compute upalp = 0.5*(1+(conf/100))." & vbCrLf
+strCommand = strCommand + "compute zbca = {lowalp; upalp}." & vbCrLf
+strCommand = strCommand + "compute blowp = trunc(lowalp*btn)." & vbCrLf
+strCommand = strCommand + "Do If (blowp < 1)." & vbCrLf
+  strCommand = strCommand + "compute blowp = 1." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "compute bhighp = trunc((upalp*btn)+1)." & vbCrLf
+strCommand = strCommand + "Do If (bhighp > btn)." & vbCrLf
+  strCommand = strCommand + "compute bhighp = btn." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "compute indeff = make(n+1+btn,nv-1-nc,-9999)." & vbCrLf
+strCommand = strCommand + "compute bdbp = 0." & vbCrLf
+strCommand = strCommand + "Loop #d = 1 To lpmax." & vbCrLf
+  strCommand = strCommand + "Do If (#d = (n+2))." & vbCrLf
+    strCommand = strCommand + "compute dat = dat2." & vbCrLf
+    strCommand = strCommand + "compute con = make(n,1,1)." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "Do If (#d > 1 And #d < (n+2))." & vbCrLf
+    strCommand = strCommand + "Do If (#d = 2)." & vbCrLf
+      strCommand = strCommand + "compute con = make((n-1),1,1)." & vbCrLf
+      strCommand = strCommand + "compute dat = dat2(2:n,:)." & vbCrLf
+    strCommand = strCommand + "Else If (#d = (n+1))." & vbCrLf
+      strCommand = strCommand + "compute dat = dat2(1:(n-1),:)." & vbCrLf
+    strCommand = strCommand + "Else." & vbCrLf
+      strCommand = strCommand + "compute dat = {dat2(1:(#d-2),:);dat2((#d:n),:)}." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "Do If (#d > (n+1))." & vbCrLf
+    strCommand = strCommand + "Loop." & vbCrLf
+    strCommand = strCommand + "compute v=trunc(uniform(n,1)*n)+1." & vbCrLf
+    strCommand = strCommand + "compute dat(:,1:nv) = dat2(v,1:nv)." & vbCrLf
+    strCommand = strCommand + "compute dat3 = {con,dat(:,2:ncol(dat))}." & vbCrLf
+    strCommand = strCommand + "compute rk = (rank(dat3)=ncol(dat3))." & vbCrLf
+    strCommand = strCommand + "compute bdbp = bdbp+(1-rk)." & vbCrLf
+    strCommand = strCommand + "End Loop If (rk = 1)." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute x = dat(:,2)." & vbCrLf
+  strCommand = strCommand + "compute m = dat(:,3:(nv-nc))." & vbCrLf
+  strCommand = strCommand + "compute y = dat(:,1)." & vbCrLf
+  strCommand = strCommand + "compute xz = dat(:,2:nv)." & vbCrLf
+  strCommand = strCommand + "compute xo = {con,x}." & vbCrLf
+  strCommand = strCommand + "Do If (nc > 0)." & vbCrLf
+    strCommand = strCommand + "compute c = dat(:,(nv-nc+1):nv)." & vbCrLf
+    strCommand = strCommand + "compute xo = {xo, c}." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "Loop #k = 3 To (nv-nc)." & vbCrLf
+     strCommand = strCommand + "compute ytmp = dat(:,#k)." & vbCrLf
+     strCommand = strCommand + "compute bzxt = inv(t(xo)*xo)*t(xo)*ytmp." & vbCrLf
+     strCommand = strCommand + "compute bzx((#k-2),1)=bzxt(2,1)." & vbCrLf
+     strCommand = strCommand + "Do If (#d = 1)." & vbCrLf
+       strCommand = strCommand + "compute resid(:,#k-1) = ytmp-(xo*bzxt)." & vbCrLf
+       strCommand = strCommand + "compute mse=csum((ytmp-(xo*bzxt))&**2)/(n-2-nc)." & vbCrLf
+       strCommand = strCommand + "compute olscm=(mse*inv((t(xo)*xo)))." & vbCrLf
+       strCommand = strCommand + "compute bzxse((#k-2),1)=sqrt(olscm(2,2))." & vbCrLf
+     strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "End Loop." & vbCrLf
+  strCommand = strCommand + "Do If (#d = 1)." & vbCrLf
+    strCommand = strCommand + "Do If (nc > 0)." & vbCrLf
+      strCommand = strCommand + "compute cnt = dd(:,(nv-(nc-1)):nv))." & vbCrLf
+      strCommand = strCommand + "compute xo = {con,x,cnt}." & vbCrLf
+    strCommand = strCommand + "Else." & vbCrLf
+      strCommand = strCommand + "compute xo = {con,x}." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+   strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+   strCommand = strCommand + "compute pt2 = make(nrow(y),1,(csum(y)/nrow(y)))." & vbCrLf
+   strCommand = strCommand + "compute pt1 = make(nrow(y),1,0.5)." & vbCrLf
+   strCommand = strCommand + "compute bt1 = make(ncol(xo),1,0)." & vbCrLf
+   strCommand = strCommand + "compute LL1 = 0." & vbCrLf
+   strCommand = strCommand + "Loop jjj = 1 To 10000." & vbCrLf
+    strCommand = strCommand + "compute vt1 = mdiag(pt1&*(1-pt1))." & vbCrLf
+    strCommand = strCommand + "compute byx = bt1+inv(t(xo)*vt1*xo)*t(xo)*(y-pt1)." & vbCrLf
+    strCommand = strCommand + "compute pt1 = 1/(1+Exp(-(xo*byx)))." & vbCrLf
+    strCommand = strCommand + "compute itprob = csum((pt1 < .00000000000001) Or (pt1 > .99999999999999))." & vbCrLf
+    strCommand = strCommand + "Do If (itprob = 0)." & vbCrLf
+    strCommand = strCommand + "compute LL = y&*ln(pt1)+(1-y)&*ln(1-pt1)." & vbCrLf
+    strCommand = strCommand + "compute LL2 = -2*csum(ll)." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "Do If (Abs(LL1-LL2) < .0000001)." & vbCrLf
+      strCommand = strCommand + "compute vt1 = mdiag(pt1&*(1-pt1))." & vbCrLf
+      strCommand = strCommand + "compute varb = inv(t(xo)*vt1*xo)." & vbCrLf
+      strCommand = strCommand + "compute olscm = diag(varb)." & vbCrLf
+      strCommand = strCommand + "break." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute bt1 = byx." & vbCrLf
+    strCommand = strCommand + "compute LL1 = LL2." & vbCrLf
+    strCommand = strCommand + "End Loop." & vbCrLf
+    strCommand = strCommand + "compute byx = byx(2,1)." & vbCrLf
+    strCommand = strCommand + "compute byxse = sqrt(olscm(2,1))." & vbCrLf
+    strCommand = strCommand + "Do If (jjj > 10000)." & vbCrLf
+     strCommand = strCommand + "compute itprob = 2." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "Do If (ovals <> 2)." & vbCrLf
+    strCommand = strCommand + "compute byx = inv(t(xo)*xo)*t(xo)*y." & vbCrLf
+    strCommand = strCommand + "compute mse=csum((y-(xo*byx))&**2)/(n-2-nc)." & vbCrLf
+    strCommand = strCommand + "compute olscm=(mse*inv((t(xo)*xo)))." & vbCrLf
+    strCommand = strCommand + "compute byxse = sqrt(olscm(2,2))." & vbCrLf
+    strCommand = strCommand + "compute byx = byx(2,1)." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute xzo = {con,xz}." & vbCrLf
+strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+strCommand = strCommand + "compute pt2 = make(nrow(y),1,(csum(y)/nrow(y)))." & vbCrLf
+strCommand = strCommand + "compute LL3 = y&*ln(pt2)+(1-y)&*ln(1-pt2)." & vbCrLf
+strCommand = strCommand + "compute LL3 = -2*csum(LL3)." & vbCrLf
+strCommand = strCommand + "compute pt1 = make(nrow(y),1,0.5)." & vbCrLf
+  strCommand = strCommand + "compute bt1 = make(ncol(xzo),1,0)." & vbCrLf
+  strCommand = strCommand + "compute LL1 = 0." & vbCrLf
+  strCommand = strCommand + "Loop jjj = 1 To 100000." & vbCrLf
+    strCommand = strCommand + "compute vt1 = mdiag(pt1&*(1-pt1))." & vbCrLf
+    strCommand = strCommand + "compute byzx = bt1+inv(t(xzo)*vt1*xzo)*t(xzo)*(y-pt1)." & vbCrLf
+    strCommand = strCommand + "compute pt1 = 1/(1+Exp(-(xzo*byzx)))." & vbCrLf
+    strCommand = strCommand + "compute itprob = csum((pt1 < .00000000000001) Or (pt1 > .99999999999999))." & vbCrLf
+    strCommand = strCommand + "Do If (itprob = 0)." & vbCrLf
+    strCommand = strCommand + "compute LL = y&*ln(pt1)+(1-y)&*ln(1-pt1)." & vbCrLf
+    strCommand = strCommand + "compute LL2 = -2*csum(ll)." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "Do If (Abs(LL1-LL2) < .0000001)." & vbCrLf
+      strCommand = strCommand + "compute vt1 = mdiag(pt1&*(1-pt1))." & vbCrLf
+      strCommand = strCommand + "compute varb = inv(t(xzo)*vt1*xzo)." & vbCrLf
+      strCommand = strCommand + "compute olscm = diag(varb)." & vbCrLf
+      strCommand = strCommand + "break." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute bt1 = byzx." & vbCrLf
+    strCommand = strCommand + "compute LL1 = LL2." & vbCrLf
+  strCommand = strCommand + "End Loop." & vbCrLf
+  strCommand = strCommand + "compute byzx2 = byzx(3:(nv-nc),1)." & vbCrLf
+  strCommand = strCommand + "Do If (nc > 0)." & vbCrLf
+      strCommand = strCommand + "compute bcon = byzx((nv-nc+1):nv,1)." & vbCrLf
+      strCommand = strCommand + "compute bconse = sqrt(olscm((nv-nc+1):nv,1))." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute cprime = byzx(2,1)." & vbCrLf
+    strCommand = strCommand + "compute cprimese = sqrt(olscm(2,1))." & vbCrLf
+    strCommand = strCommand + "compute byzx2se = sqrt(olscm(3:(nv-nc),1))." & vbCrLf
+    strCommand = strCommand + "Do If (#d = 1)." & vbCrLf
+    strCommand = strCommand + "compute pi = (exp(xzo*byzx)/(1+exp(xzo*byzx)))." & vbCrLf
+    strCommand = strCommand + "compute resid(:,ncol(resid))=((y-pt1)/abs(y-pt1))&*sqrt(-2*(LL))." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "Do If (jjj > 100000)." & vbCrLf
+   strCommand = strCommand + "compute itprob = 2." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "Do If (ovals <> 2)." & vbCrLf
+  strCommand = strCommand + "compute byzx = inv(t(xzo)*xzo)*t(xzo)*y." & vbCrLf
+  strCommand = strCommand + "compute byzx2 = byzx(3:(nv-nc),1)." & vbCrLf
+  strCommand = strCommand + "Do If (#d = 1)." & vbCrLf
+    strCommand = strCommand + "compute mse=csum((y-(xzo*byzx))&**2)/(n-nv)." & vbCrLf
+    strCommand = strCommand + "compute resid(:,ncol(resid))=y-(xzo*byzx)." & vbCrLf
+    strCommand = strCommand + "compute covmat=mse*inv(t(xzo)*xzo)." & vbCrLf
+    strCommand = strCommand + "compute olscm=diag(covmat)." & vbCrLf
+    strCommand = strCommand + "compute sse = mse*(n-nv)." & vbCrLf
+    strCommand = strCommand + "compute sst = csum((y-(csum(y)/n))&**2)." & vbCrLf
+    strCommand = strCommand + "compute r2 = 1-(sse/sst)." & vbCrLf
+    strCommand = strCommand + "compute ar2 = 1-(mse/(sst/(n-1)))." & vbCrLf
+    strCommand = strCommand + "compute fr = ((n-nv)*r2)/((1-r2)*ncol(xz))." & vbCrLf
+    strCommand = strCommand + "compute pfr = 1-fcdf(fr,ncol(xz),(n-nv))." & vbCrLf
+    strCommand = strCommand + "Do If (nc > 0)." & vbCrLf
+      strCommand = strCommand + "compute bcon = byzx((nv-nc+1):nv,1)." & vbCrLf
+      strCommand = strCommand + "compute bconse = sqrt(olscm((nv-nc+1):nv,1))." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute byzx2se = sqrt(olscm(3:(nv-nc),1))." & vbCrLf
+    strCommand = strCommand + "compute cprime = byzx(2,1)." & vbCrLf
+    strCommand = strCommand + "compute cprimese = sqrt(olscm(2,1))." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute indeff2 = (bzx&*byzx2)." & vbCrLf
+  strCommand = strCommand + "compute zs = (bzx&/bzxse)&*(byzx2&/byzx2se)." & vbCrLf
+  strCommand = strCommand + "compute temp = t({csum(indeff2); indeff2})." & vbCrLf
+  strCommand = strCommand + "compute indeff(#d,:) = temp." & vbCrLf
+  strCommand = strCommand + "Do If (#d = 1)." & vbCrLf
+    strCommand = strCommand + "compute vs = nm(1:(nv-nc),1)." & vbCrLf
+    strCommand = strCommand + "Print/title = '*****************************************************************'." & vbCrLf
+    strCommand = strCommand + "Print/title = 'Preacher And Hayes (2008) SPSS Macro For Multiple Mediation'." & vbCrLf
+    strCommand = strCommand + "Print/title = 'Written by Andrew F. Hayes, The Ohio State University'." & vbCrLf
+    strCommand = strCommand + "Print/title = 'http://www.afhayes.com'." & vbCrLf
+    strCommand = strCommand + "Print/title = 'For details, see Preacher, K. J., & Hayes, A. F. (2008). Asymptotic'." & vbCrLf
+    strCommand = strCommand + "Print/title = 'and resampling strategies For assessing And comparing indirecct effects'." & vbCrLf
+    strCommand = strCommand + "Print/title = 'in multiple mediator models. Behavior Research Methods, 40, 879-891'." & vbCrLf
+    strCommand = strCommand + "Print/title = '*****************************************************************'." & vbCrLf
+    strCommand = strCommand + "Print vs/title = 'Dependent, Independent, and Proposed Mediator Variables:'/rlabels = 'DV =' 'IV = ' 'MEDS = '/Format a8." & vbCrLf
+    strCommand = strCommand + " Do If (nc > 0)." & vbCrLf
+      strCommand = strCommand + "compute vs = nm((nv-nc+1):nv,1)." & vbCrLf
+      strCommand = strCommand + "Print vs/title = 'Statistical Controls:'/rlabels = 'CONTROL='/Format a8." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "Print n/title = 'Sample size'/Format F10.0." & vbCrLf
+    strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+    strCommand = strCommand + "compute nmsd = {outv, 'Analysis'}." & vbCrLf
+    strCommand = strCommand + "Print rcd/title = 'Coding of Binary DV for analysis:'/cnames = nmsd/Format = F9.2." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute nms = nm(3:(nv-nc),1)." & vbCrLf
+    strCommand = strCommand + "compute te = bzx&/bzxse." & vbCrLf
+    strCommand = strCommand + "compute df = n-2-nc." & vbCrLf
+    strCommand = strCommand + "compute p = 2*(1-tcdf(Abs(te), df))." & vbCrLf
+    strCommand = strCommand + "compute bzxmat = {bzx, bzxse,te,p}." & vbCrLf
+    strCommand = strCommand + "compute b(2:(nv-1-nc),1)=bzx." & vbCrLf
+    strCommand = strCommand + "compute se2 = bzxse&*bzxse." & vbCrLf
+    strCommand = strCommand + "Print bzxmat/title = 'IV to Mediators (a paths)'/rnames = nms/clabels 'Coeff' 'se' 't' 'p'/Format f9.4." & vbCrLf
+    strCommand = strCommand + "compute te = byzx2&/byzx2se." & vbCrLf
+    strCommand = strCommand + "compute df = n-nv." & vbCrLf
+    strCommand = strCommand + "do if (ovals <> 2)." & vbCrLf
+    strCommand = strCommand + "compute p = 2*(1-tcdf(Abs(te), df))." & vbCrLf
+    strCommand = strCommand + "compute byzx2mat={byzx2, byzx2se, te, p}." & vbCrLf
+    strCommand = strCommand + "compute df = n-nv." & vbCrLf
+    strCommand = strCommand + "Print byzx2mat/title = 'Direct Effects of Mediators on DV (b paths)'/rnames = nms/clabels 'Coeff' 'se' 't' 'p'/Format f9.4." & vbCrLf
+    strCommand = strCommand + "end if." & vbCrLf
+      strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+      strCommand = strCommand + "compute wald = te&*te." & vbCrLf
+      strCommand = strCommand + "compute p = 2*(1-cdfnorm(Abs(te)))." & vbCrLf
+      strCommand = strCommand + "compute byzx2mat={byzx2, byzx2se, te, p, Wald}." & vbCrLf
+      strCommand = strCommand + "Print byzx2mat/title = 'Direct Effects of Mediators on DV (b paths)'/rnames = nms/clabels 'Coeff' 'se' 'Z' 'p' 'Wald'/Format f9.4." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute te = byx&/byxse." & vbCrLf
+    strCommand = strCommand + "compute df = n-2-nc." & vbCrLf
+    strCommand = strCommand + "compute xnm = nm(2,1)." & vbCrLf
+    strCommand = strCommand + "do if (ovals <> 2)." & vbCrLf
+    strCommand = strCommand + "compute p = 2*(1-tcdf(Abs(te), df))." & vbCrLf
+    strCommand = strCommand + "compute byxmat = {byx, byxse, te, p}." & vbCrLf
+    strCommand = strCommand + "Print byxmat/title = 'Total Effect of IV on DV (c path)'/rnames = xnm/clabels 'Coeff' 'se' 't' 'p'/Format f9.4." & vbCrLf
+    strCommand = strCommand + "end if." & vbCrLf
+    strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+    strCommand = strCommand + "compute wald = te&*te." & vbCrLf
+    strCommand = strCommand + "compute p = 2*(1-cdfnorm(Abs(te)))." & vbCrLf
+    strCommand = strCommand + "compute byxmat = {byx, byxse, te, p, Wald}." & vbCrLf
+    strCommand = strCommand + "Print byxmat/title = 'Total Effect of IV on DV (c path)'/rnames = xnm/clabels 'Coeff' 'se' 'Z' 'p' 'Wald'/Format f9.4." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute te = cprime&/cprimese." & vbCrLf
+    strCommand = strCommand + "compute df = n-nv." & vbCrLf
+    strCommand = strCommand + "do if (ovals <> 2)." & vbCrLf
+    strCommand = strCommand + "compute p = 2*(1-tcdf(Abs(te), df))." & vbCrLf
+    strCommand = strCommand + "compute cprimmat = {cprime, cprimese, te, p}." & vbCrLf
+    strCommand = strCommand + "Print cprimmat/title = 'Direct Effect of IV on DV (c-prime path)'/rnames = xnm/clabels 'Coeff' 'se' 't' 'p'/Format f9.4." & vbCrLf
+    strCommand = strCommand + "End if." & vbCrLf
+    strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+    strCommand = strCommand + "compute wald = te&*te." & vbCrLf
+    strCommand = strCommand + "compute p = 2*(1-cdfnorm(Abs(te)))." & vbCrLf
+    strCommand = strCommand + "compute cprimmat = {cprime, cprimese, te, p, Wald}." & vbCrLf
+    strCommand = strCommand + "Print cprimmat/title = 'Direct Effect of IV on DV (c-prime path)'/rnames = xnm/clabels 'Coeff' 'se' 'Z' 'p' 'Wald'/Format f9.4." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "Do If (nc > 0)." & vbCrLf
+      strCommand = strCommand + "compute df = n-nv." & vbCrLf
+      strCommand = strCommand + "compute nms = nm((nv- " & c & "+1):nv,1)." & vbCrLf
+      strCommand = strCommand + "compute te = bcon&/bconse." & vbCrLf
+      strCommand = strCommand + "do if (ovals <> 2)." & vbCrLf
+      strCommand = strCommand + "compute p = 2*(1-tcdf(Abs(te), df))." & vbCrLf
+      strCommand = strCommand + "compute bconmat = {bcon, bconse,te,p}." & vbCrLf
+      strCommand = strCommand + "Print bconmat/title = 'Partial Effect of Control Variables on DV'/rnames = nms/clabels 'Coeff' 'se' 't' 'p'/Format f9.4." & vbCrLf
+      strCommand = strCommand + "end if." & vbCrLf
+      strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+      strCommand = strCommand + "compute wald = te&*te." & vbCrLf
+      strCommand = strCommand + "compute p = 2*(1-cdfnorm(Abs(te)))." & vbCrLf
+      strCommand = strCommand + "compute bconmat = {bcon, bconse,te,p, Wald}." & vbCrLf
+      strCommand = strCommand + "Print bconmat/title = 'Partial Effect of Control Variables on DV'/rnames = nms/clabels 'Coeff' 'se' 'Z' 'p' 'Wald'/Format f9.4." & vbCrLf
+      strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "Do if (ovals <> 2)." & vbCrLf
+    strCommand = strCommand + "compute dvms = {r2, ar2, fr, ncol(xz), (n-nv), pfr}." & vbCrLf
+    strCommand = strCommand + "Print dvms/title = 'Model Summary for DV Model'/clabels 'R-sq' 'Adj R-sq' 'F' 'df1' 'df2' 'p'/Format F9.4." & vbCrLf
+    strCommand = strCommand + "End if." & vbCrLf
+    strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+    strCommand = strCommand + "compute LLdiff = LL3-LL2." & vbCrLf
+    strCommand = strCommand + "compute mcF = LLdiff/LL3." & vbCrLf
+    strCommand = strCommand + "compute cox = 1-Exp(-LLdiff/n)." & vbCrLf
+    strCommand = strCommand + "compute nagel = cox/(1-Exp(-(LL3)/n))." & vbCrLf
+    strCommand = strCommand + "compute pf = {LL2, LLdiff, mcF, cox, nagel, n}." & vbCrLf
+    strCommand = strCommand + "Print pf/title = 'Logistic Regression Summary For DV Model'/clabels = '-2LL' 'Model LL' 'McFadden' 'CoxSnell' 'Nagelkrk' 'n'/Format F10.4." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "Do If (normal <> 0 And " & c & " = 0) and (ovals <> 2)." & vbCrLf
+    strCommand = strCommand + "compute bmat = make((nv-nc),(nv-nc),0)." & vbCrLf
+    strCommand = strCommand + "compute bmat(2:(nv-nc-1),1) = bzx." & vbCrLf
+    strCommand = strCommand + "compute bmat((nv-nc),2:(nv-nc-1))=t(byzx2)." & vbCrLf
+    strCommand = strCommand + "compute bmat((nv-nc),1) = cprime." & vbCrLf
+    strCommand = strCommand + "compute imbinv = inv(ident(ncol(bmat))-bmat)." & vbCrLf
+    strCommand = strCommand + "compute imbtinv=inv(ident(ncol(bmat))-t(bmat))." & vbCrLf
+    strCommand = strCommand + "compute resid(:,1)=x-(csum(x)/(n))." & vbCrLf
+    strCommand = strCommand + "compute psi = sscp(resid)/(n)." & vbCrLf
+    strCommand = strCommand + "compute invpsi = inv(psi)." & vbCrLf
+    strCommand = strCommand + "compute ibpsiib = imbinv*psi*imbtinv." & vbCrLf
+    strCommand = strCommand + "Loop ic = 1 To ncol(info)." & vbCrLf
+    strCommand = strCommand + "Loop ic2 = 1 To ncol(info)." & vbCrLf
+    strCommand = strCommand + "compute info(ic,ic2)=(n-1)*((imbinv(imat(ic2,4),imat(ic,1))*imbinv(imat(ic,2),imat(ic2,3)))+(ibpsiib(imat(ic2,4),imat(ic,2))*invpsi(imat(ic,1),imat(ic2,3))))." & vbCrLf
+    strCommand = strCommand + "End Loop." & vbCrLf
+    strCommand = strCommand + "End Loop." & vbCrLf
+    strCommand = strCommand + "compute varcov = inv(info)." & vbCrLf
+    strCommand = strCommand + "compute varcov = varcov(1:(2*(nv-nc-2)),1:(2*(nv-nc-2)))." & vbCrLf
+    strCommand = strCommand + "compute ses = diag(varcov)." & vbCrLf
+    strCommand = strCommand + "compute avar = ses(1:nrow(bzxse),1)." & vbCrLf
+    strCommand = strCommand + "compute bvar = ses((nrow(bzxse)+1):nrow(ses),1)." & vbCrLf
+    strCommand = strCommand + "Do If ((nv-nc-2) > 1 And (contrast = 1))." & vbCrLf
+      strCommand = strCommand + "compute prws=make(((nv-nc-2)*(nv-nc-3)/2),1,0)." & vbCrLf
+      strCommand = strCommand + "compute prwse=prws." & vbCrLf
+      strCommand = strCommand + "compute kk=1." & vbCrLf
+      strCommand = strCommand + "Loop ic = 1 To (nv-nc-3)." & vbCrLf
+        strCommand = strCommand + "Loop ic2 = (ic+1) To (nv-nc-2)." & vbCrLf
+          strCommand = strCommand + "compute vf2 = ((byzx2(ic,1)**2)*varcov(ic,ic))-(2*byzx2(ic,1)*byzx2(ic2,1)*(varcov(ic,ic2)))." & vbCrLf
+          strCommand = strCommand + "compute vf2=vf2+((byzx2(ic2,1)**2)*varcov(ic2,ic2))+((bzx(ic,1)**2)*(bvar(ic,1)))." & vbCrLf
+          strCommand = strCommand + "compute vf2=vf2-(2*bzx(ic,1)*bzx(ic2,1)*covmat((2+ic),(2+ic2)))+((bzx(ic2,1)**2)*(bvar(ic2,1)))." & vbCrLf
+          strCommand = strCommand + "compute cnt = indeff2(ic,1)-indeff2(ic2,1)." & vbCrLf
+          strCommand = strCommand + "compute prws(kk,1)=cnt." & vbCrLf
+          strCommand = strCommand + "compute prwse(kk,1)=sqrt(vf2)." & vbCrLf
+          strCommand = strCommand + "compute kk=kk+1." & vbCrLf
+        strCommand = strCommand + "End Loop." & vbCrLf
+      strCommand = strCommand + "End Loop." & vbCrLf
+    strCommand = strCommand + "compute cnam2 = cname(1:(kk-1),1)." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute dermat = {byzx2;bzx}." & vbCrLf
+    strCommand = strCommand + "compute totse = sqrt(t(dermat)*varcov*dermat)." & vbCrLf
+    strCommand = strCommand + "compute specse = sqrt((byzx2&*byzx2)&*(avar)+(bzx&*bzx)&*(bvar))." & vbCrLf
+    strCommand = strCommand + "compute specse = {totse; specse}." & vbCrLf
+    strCommand = strCommand + "compute specz = {csum(indeff2);indeff2}&/specse." & vbCrLf
+    strCommand = strCommand + "compute ind22 = {csum(indeff2);indeff2}." & vbCrLf
+    strCommand = strCommand + "compute nms = {'TOTAL';nm(3:(nv-nc),1)}." & vbCrLf
+    strCommand = strCommand + "Do If ((nv-nc-2) > 1 And (contrast = 1))." & vbCrLf
+       strCommand = strCommand + "compute ind22 = {ind22;prws}." & vbCrLf
+       strCommand = strCommand + "compute specse = {specse;prwse}." & vbCrLf
+       strCommand = strCommand + "compute specz = {specz;(prws&/prwse)}." & vbCrLf
+       strCommand = strCommand + "compute nms = {nms;cnam2}." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+    strCommand = strCommand + "compute pspec= 2*(1-cdfnorm(Abs(specz)))." & vbCrLf
+    strCommand = strCommand + "compute spec = {ind22, specse, specz, pspec}." & vbCrLf
+    strCommand = strCommand + "Print/title = '******************************************************************'." & vbCrLf
+    strCommand = strCommand + "Print/title = '           NORMAL THEORY TESTS FOR INDIRECT EFFECTS'." & vbCrLf
+    strCommand = strCommand + "Print spec/title = 'Indirect Effects of IV on DV through Proposed Mediators (ab paths)'/rnames = nms/clabels 'Effect' 'se' 'Z' 'p'/Format = f9.4." & vbCrLf
+    strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "End Loop." & vbCrLf
+strCommand = strCommand + "Do If (btn > 1)." & vbCrLf
+  strCommand = strCommand + "compute nms = {'TOTAL'; nm(3:(nv-nc),1)}." & vbCrLf
+  strCommand = strCommand + "Do If ((nv-nc-2) > 1 And (contrast = 1))." & vbCrLf
+    strCommand = strCommand + "compute crst = make((n+1+btn),((nv-nc-2)*(nv-nc-3)/2),0)." & vbCrLf
+    strCommand = strCommand + "compute kk=1." & vbCrLf
+    strCommand = strCommand + "Loop ic = 2 To (nv-nc-2)." & vbCrLf
+      strCommand = strCommand + "Loop ic2 = (ic+1) To (nv-nc-1)." & vbCrLf
+        strCommand = strCommand + "compute crst(:,kk)=indeff(:,ic)-indeff(:,ic2)." & vbCrLf
+        strCommand = strCommand + "compute kk=kk+1." & vbCrLf
+      strCommand = strCommand + "End Loop." & vbCrLf
+    strCommand = strCommand + "End Loop." & vbCrLf
+    strCommand = strCommand + "compute indeff = {indeff,crst}." & vbCrLf
+    strCommand = strCommand + "compute cnam2 = cname(1:(kk-1),1)." & vbCrLf
+    strCommand = strCommand + "compute nms = {nms;cnam2}." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "compute lvout = indeff(2:(n+1),:)." & vbCrLf
+strCommand = strCommand + "compute tdotm = csum(lvout)/n." & vbCrLf
+strCommand = strCommand + "compute tm = (make(n,ncol(lvout),1))*mdiag(tdotm)." & vbCrLf
+strCommand = strCommand + "compute topa = csum((((n-1)/n)*(tm-lvout))&**3)." & vbCrLf
+strCommand = strCommand + "compute bota = 6*sqrt((csum((((n-1)/n)*(tm-lvout))&**2)&**3))." & vbCrLf
+strCommand = strCommand + "compute ahat = topa&/bota." & vbCrLf
+strCommand = strCommand + "compute indsam = t(indeff(1,:))." & vbCrLf
+strCommand = strCommand + "compute boot = indeff((n+2):nrow(indeff),:)." & vbCrLf
+strCommand = strCommand + "compute mnboot = t(csum(boot)/btn)." & vbCrLf
+strCommand = strCommand + "compute se = (sqrt(((btn*cssq(boot))-(csum(boot)&**2))/((btn-1)*btn)))." & vbCrLf
+strCommand = strCommand + "Do if (" & sve & " = 1)." & vbCrLf
+strCommand = strCommand + "save boot/outfile = indirect.sav/names = nms." & vbCrLf
+strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "Loop #e = 1 To ncol(indeff)." & vbCrLf
+  strCommand = strCommand + "compute boottmp = boot(:,#e)." & vbCrLf
+  strCommand = strCommand + "compute boottmp(GRADE(boot(:,#e))) = boot(:,#e)." & vbCrLf
+  strCommand = strCommand + "compute boot(:,#e) = boottmp." & vbCrLf
+strCommand = strCommand + "End Loop." & vbCrLf
+strCommand = strCommand + "compute xp = make((nrow(mnboot)+2),1,0)." & vbCrLf
+strCommand = strCommand + "Loop i = 1 To (nrow(mnboot)+2)." & vbCrLf
+  strCommand = strCommand + "Do If (i <= nrow(mnboot))." & vbCrLf
+    strCommand = strCommand + "compute pv = (boot(:,i) < indsam(i,1))." & vbCrLf
+    strCommand = strCommand + "compute pv = csum(pv)/btn." & vbCrLf
+  strCommand = strCommand + "Else." & vbCrLf
+    strCommand = strCommand + "compute pv = zbca((i-nrow(mnboot)),1)." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute p = pv." & vbCrLf
+  strCommand = strCommand + "Do If (pv > .5)." & vbCrLf
+    strCommand = strCommand + "compute p = 1-pv." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute y5=sqrt(-2*ln(p))." & vbCrLf
+  strCommand = strCommand + "compute xp(i,1)=y5+((((y5*p4+p3)*y5+p2)*y5+p1)*y5+p0)/((((y5*q4+q3)*y5+q2)*y5+q1)*y5+q0)." & vbCrLf
+  strCommand = strCommand + "Do If (pv <= .5)." & vbCrLf
+    strCommand = strCommand + "compute xp(i,1) = -xp(i,1)." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "End Loop." & vbCrLf
+strCommand = strCommand + "compute bbb = nrow(mnboot)." & vbCrLf
+strCommand = strCommand + "compute zz = xp(1:bbb,1)." & vbCrLf
+strCommand = strCommand + "compute zlo = zz + ((zz+xp((bbb+1),1))&/(1-t(ahat)&*(zz+xp((bbb+1),1))))." & vbCrLf
+strCommand = strCommand + "compute zup = zz + ((zz+xp((bbb+2),1))&/(1-t(ahat)&*(zz+xp((bbb+2),1))))." & vbCrLf
+strCommand = strCommand + "compute ahat = 0." & vbCrLf
+strCommand = strCommand + "compute zlobc = zz + ((zz+xp((bbb+1),1))&/(1-t(ahat)&*(zz+xp((bbb+1),1))))." & vbCrLf
+strCommand = strCommand + "compute zupbc = zz + ((zz+xp((bbb+2),1))&/(1-t(ahat)&*(zz+xp((bbb+2),1))))." & vbCrLf
+strCommand = strCommand + "compute zlo = cdfnorm(zlo)." & vbCrLf
+strCommand = strCommand + "compute zup = cdfnorm(zup)." & vbCrLf
+strCommand = strCommand + "compute zlobc = cdfnorm(zlobc)." & vbCrLf
+strCommand = strCommand + "compute zupbc = cdfnorm(zupbc)." & vbCrLf
+strCommand = strCommand + "compute blow = trunc(zlo*(btn+1))." & vbCrLf
+strCommand = strCommand + "compute bhigh = trunc(zup*(btn+1))+1." & vbCrLf
+strCommand = strCommand + "compute blowbc = trunc(zlobc*(btn+1))." & vbCrLf
+strCommand = strCommand + "compute bhighbc = trunc(zupbc*(btn+1))+1." & vbCrLf
+strCommand = strCommand + "compute lowbca = make(nrow(blow),1,0)." & vbCrLf
+strCommand = strCommand + "compute upbca = lowbca." & vbCrLf
+strCommand = strCommand + "Loop i = 1 To nrow(blow)." & vbCrLf
+  strCommand = strCommand + "Do If (blow(i,1) < 1)." & vbCrLf
+    strCommand = strCommand + "compute blow(i,1) = 1." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute lowbca(i,1)=boot(blow(i,1),i)." & vbCrLf
+  strCommand = strCommand + "Do If (bhigh(i,1) > btn)." & vbCrLf
+    strCommand = strCommand + "compute bhigh(i,1) = btn." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute upbca(i,1)=boot(bhigh(i,1),i)." & vbCrLf
+strCommand = strCommand + "End Loop." & vbCrLf
+strCommand = strCommand + "compute lowbc = make(nrow(blow),1,0)." & vbCrLf
+strCommand = strCommand + "compute upbc = lowbca." & vbCrLf
+strCommand = strCommand + "Loop i = 1 To nrow(blowbc)." & vbCrLf
+  strCommand = strCommand + "Do If (blowbc(i,1) < 1)." & vbCrLf
+    strCommand = strCommand + "compute blowbc(i,1) = 1." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute lowbc(i,1)=boot(blowbc(i,1),i)." & vbCrLf
+  strCommand = strCommand + "Do If (bhighbc(i,1) > btn)." & vbCrLf
+    strCommand = strCommand + "compute bhighbc(i,1) = btn." & vbCrLf
+  strCommand = strCommand + "End If." & vbCrLf
+  strCommand = strCommand + "compute upbc(i,1)=boot(bhighbc(i,1),i)." & vbCrLf
+strCommand = strCommand + "End Loop." & vbCrLf
+strCommand = strCommand + "Print/title = '*****************************************************************'." & vbCrLf
+strCommand = strCommand + "Print/title = '           BOOTSTRAP RESULTS FOR INDIRECT EFFECTS'." & vbCrLf
+strCommand = strCommand + "compute res = {indsam, mnboot,(mnboot-indsam), t(se)}." & vbCrLf
+strCommand = strCommand + "Print res/title = 'Indirect Effects of IV on DV through Proposed Mediators (ab paths)'/rnames = nms/clabels 'Data' 'boot' 'Bias' 'SE'/Format f9.4." & vbCrLf
+strCommand = strCommand + "compute lowperc = boot(blowp,:)." & vbCrLf
+strCommand = strCommand + "compute upperc = boot(bhighp,:)." & vbCrLf
+strCommand = strCommand + "compute ci = {lowbca, upbca}." & vbCrLf
+strCommand = strCommand + "Do If (bca <> 0)." & vbCrLf
+  strCommand = strCommand + "Print ci/title = 'Bias Corrected and Accelerated Confidence Intervals'/rnames = nms/clabels 'Lower' 'Upper'/Format F9.4." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "Do If (bc <> 0)." & vbCrLf
+  strCommand = strCommand + "compute ci = {lowbc, upbc}." & vbCrLf
+  strCommand = strCommand + "Print ci/title = 'Bias Corrected Confidence Intervals'/rnames = nms/clabels 'Lower' 'Upper'/Format F9.4." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "Do If (percent <> 0)." & vbCrLf
+  strCommand = strCommand + "compute ci = {t(lowperc), t(upperc)}." & vbCrLf
+  strCommand = strCommand + "Print ci/title = 'Percentile Confidence Intervals'/rnames = nms/clabels 'Lower' 'Upper'/Format F9.4." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "Print/title = '*****************************************************************'." & vbCrLf
+strCommand = strCommand + "Print conf/title = 'Level of Confidence for Confidence Intervals:'." & vbCrLf
+strCommand = strCommand + "Print btn/title = 'Number of Bootstrap Resamples:'." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "Do If ((nv-nc-2) > 1 And (contrast = 1) And ((normal = 1 And " & c & " = 0) Or btn > 999)))." & vbCrLf
+strCommand = strCommand + "Print/title = '*****************************************************************'." & vbCrLf
+strCommand = strCommand + "Print/title = '  INDIRECT EFFECT contrast DEFINITIONS: Ind_Eff1 MINUS Ind_Eff2'." & vbCrLf
+strCommand = strCommand + "compute kk=1." & vbCrLf
+strCommand = strCommand + "compute prwsv=make(((nv-nc-2)*(nv-nc-3)/2),2,0)." & vbCrLf
+ strCommand = strCommand + "Loop ic = 1 To (nv-nc-3)." & vbCrLf
+        strCommand = strCommand + "Loop ic2 = (ic+1) To (nv-nc-2)." & vbCrLf
+          strCommand = strCommand + "compute prwsv(kk,1)=nm(ic+2,1)." & vbCrLf
+          strCommand = strCommand + "compute prwsv(kk,2)=nm(ic2+2,1)." & vbCrLf
+          strCommand = strCommand + "compute kk=kk+1." & vbCrLf
+       strCommand = strCommand + "End Loop." & vbCrLf
+strCommand = strCommand + "End Loop." & vbCrLf
+strCommand = strCommand + "compute prwsv = {cnam2, prwsv}." & vbCrLf
+strCommand = strCommand + "Print prwsv/title = ' '/clabels = 'contrast' 'IndEff_1' 'IndEff_2'/Format A9." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "Print/title = '********************************* NOTES **********************************'." & vbCrLf
+strCommand = strCommand + "Do if btn = 1)." & vbCrLf
+strCommand = strCommand + "Print/title = 'Bootstrap confidence intervals are preferred to normal theory tests for inference about indirect effects.'." & vbCrLf
+strCommand = strCommand + "Print/title = 'See Hayes, A.F.(2009). Beyond Baron And Kenny: Statistical mediation analysis in the new millennium.'." & vbCrLf
+strCommand = strCommand + "Print/title = 'Communication Monographs, 76, 408-420'." & vbCrLf
+strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "Do if (" & c & " > 0 and btn = 1)." & vbCrLf
+strCommand = strCommand + "Print/title = 'NOTE: With covariates, normal theory tests of indirect effects are not available.'." & vbCrLf
+strCommand = strCommand + "Print/title = 'To obtain indirect effects, request bootstrapping.'." & vbCrLf
+strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "Do If (ovals = 2)." & vbCrLf
+strCommand = strCommand + "Print/title = 'NOTE: Normal theory tests are not available for models with dichotomous outcomes'." & vbCrLf
+strCommand = strCommand + "Do If (btn = 1)." & vbCrLf
+strCommand = strCommand + "Print/title = 'To calculate indirect effects, request bootstrapping'." & vbCrLf
+strCommand = strCommand + "End if." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "Do If (bdbp > 0)." & vbCrLf
+strCommand = strCommand + "Print/title = '*****************************************************************'." & vbCrLf
+strCommand = strCommand + "Print/title = 'WARNING: SOME BOOTSTRAP MATRICES WERE SINGULAR'." & vbCrLf
+strCommand = strCommand + "Print/title = 'SINGULAR MATRICES WERE REPLACED DURING RESAMPLING'." & vbCrLf
+strCommand = strCommand + "Print bdbp/title = 'Number of singular bootstrap samples replaced:'." & vbCrLf
+strCommand = strCommand + "End If." & vbCrLf
+strCommand = strCommand + "End MATRIX." & vbCrLf
+strCommand = strCommand + "RESTORE." & vbCrLf
+  objSpssApp.ExecuteCommands strCommand, True
+End Sub
+
+
+ 
+
+     
+ 
+
+
+ 
