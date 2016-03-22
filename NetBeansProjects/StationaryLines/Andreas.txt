@@ -1,0 +1,6 @@
+UserID: Andreas
+LengthOfLine|WidthPlacement|HeightPlacement|ActualTime|GuessedTime
+150|1031|336|3|2431
+700|720|733|7|5330
+450|970|600|5|1209
+300|1120|270|10|231

@@ -1,0 +1,6 @@
+UserID: Daniel
+LengthOfLine|WidthPlacement|HeightPlacement|ActualTime|GuessedTime
+700|720|528|6|6288
+300|552|617|6|4250
+150|1016|595|5|4010
+450|686|460|5|2511

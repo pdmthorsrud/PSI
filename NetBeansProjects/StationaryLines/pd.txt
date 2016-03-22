@@ -1,0 +1,6 @@
+UserID: pd
+LengthOfLine|WidthPlacement|HeightPlacement|ActualTime|GuessedTime
+450|750|444|3|1171
+150|643|374|4|351
+300|832|545|1|281
+700|630|544|5|369

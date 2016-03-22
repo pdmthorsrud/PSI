@@ -1,0 +1,6 @@
+UserID: test
+LengthOfLine|WidthPlacement|HeightPlacement|ActualTime|GuessedTime
+150|1109|542|2|180
+300|544|641|10|1019
+700|720|322|10|258
+450|970|394|4|190

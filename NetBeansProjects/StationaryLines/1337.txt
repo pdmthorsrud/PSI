@@ -1,0 +1,6 @@
+UserID: 1337
+LengthOfLine|WidthPlacement|HeightPlacement|ActualTime|GuessedTime
+700|639|310|10|8705
+450|970|477|10|5944
+300|1054|452|2|10018
+150|999|826|3|1310

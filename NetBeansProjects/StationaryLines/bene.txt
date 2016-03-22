@@ -1,0 +1,6 @@
+UserID: bene
+LengthOfLine|WidthPlacement|HeightPlacement|ActualTime|GuessedTime
+150|790|735|5|199
+700|720|436|2|220
+300|1120|751|5|230
+450|621|232|7|150
